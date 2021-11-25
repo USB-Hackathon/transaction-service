@@ -1,0 +1,9 @@
+date,type,detail,amount
+01/01/20,Cr,Salary,500
+01/02/20,Cr,InsuranceMaturity,100
+01/07/20,Dr,Entertainment,20
+01/05/20,Dr,Transfers,80
+01/13/20,Dr,Bills,120
+01/19/20,Dr,Groceries,60
+01/22/20,Dr,Miscellaneous,20
+01/24/20,Dr,Shopping,75

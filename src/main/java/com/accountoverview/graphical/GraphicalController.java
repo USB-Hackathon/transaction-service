@@ -11,7 +11,7 @@ public class GraphicalController
 	@GetMapping("/ping")
 	public String ping()
 	{
-		return "Hello world!";
+		return "Hello world USBank!";
 	}
 
 }

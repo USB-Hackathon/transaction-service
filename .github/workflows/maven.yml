@@ -26,5 +26,5 @@ jobs:
     - name: Release JAR
       uses: ncipollo/release-action@v1
       with:
-        artifacts: "target/*-SNAPSHOT.jar"
+        artifacts: "./target/*-SNAPSHOT.jar"
         token: ${{ secrets.GITHUB_TOKEN }}

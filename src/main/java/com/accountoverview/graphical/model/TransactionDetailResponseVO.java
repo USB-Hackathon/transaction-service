@@ -1,10 +1,10 @@
-package com.accountoverview.graphical.model.vo;
+package com.accountoverview.graphical.model;
 
-public class TransactionBreakupVO
+public class TransactionDetailResponseVO
 {
 	private String label;
 
-	private String value;
+	private Integer value = 0;
 
 	public String getLabel()
 	{
@@ -16,14 +16,13 @@ public class TransactionBreakupVO
 		this.label = label;
 	}
 
-	public String getValue()
+	public Integer getValue()
 	{
 		return value;
 	}
 
-	public void setValue(String value)
+	public void setValue(Integer value)
 	{
 		this.value = value;
 	}
-
 }

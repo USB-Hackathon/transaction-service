@@ -8,9 +8,11 @@ import java.time.LocalDate;
 import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
+import java.util.Set;
 import java.util.stream.Collectors;
 
 import org.springframework.http.HttpStatus;
@@ -20,11 +22,12 @@ import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
+import com.accountoverview.graphical.AppConstants.TranDetail;
 import com.accountoverview.graphical.AppConstants.TranType;
 import com.accountoverview.graphical.model.TransactionByMonthResponseVO;
-import com.accountoverview.graphical.model.TransactionDetailByMonthResponseVO;
+import com.accountoverview.graphical.model.TransactionDetailResponseVO;
+import com.accountoverview.graphical.model.TransactionOverviewResponseVO;
 import com.accountoverview.graphical.model.TransactionVO;
-import com.accountoverview.graphical.model.vo.TransactionBreakupVO;
 import com.fasterxml.jackson.databind.MappingIterator;
 import com.fasterxml.jackson.dataformat.csv.CsvMapper;
 import com.fasterxml.jackson.dataformat.csv.CsvSchema;
@@ -36,15 +39,51 @@ public class TransactionController
 	@GetMapping("/ping")
 	public String ping()
 	{
-		return "Hello world: Transaction records!";
+		return "Hello World: Transaction records!";
 	}
 
-	@GetMapping("/list")
-	public ResponseEntity<List<TransactionVO>> getAllTransactions() throws Exception
+	@GetMapping("/overview")
+	public ResponseEntity<TransactionOverviewResponseVO> getAllTransactionsOverview() throws Exception
 	{
 
 		List<TransactionVO> tranList = getRecords();
-		return new ResponseEntity<List<TransactionVO>>(tranList, HttpStatus.OK);
+
+		TransactionOverviewResponseVO overviewVO = new TransactionOverviewResponseVO();
+
+		Integer totalEarnings = 0;
+		Integer totalExpenses = 0;
+		Set<String> acctNumbers = new HashSet<>();
+
+		for(TranDetail aTranDetail : TranDetail.values())
+		{
+			TransactionDetailResponseVO detailResponseVO = new TransactionDetailResponseVO();
+			detailResponseVO.setLabel(aTranDetail.name());
+
+			overviewVO.getTransactions().add(detailResponseVO);
+		}
+
+		for(TransactionVO tranVO : tranList)
+		{
+			if(tranVO.getType() == TranType.Cr)
+				totalEarnings++;
+
+			else if(tranVO.getType() == TranType.Dr)
+				totalExpenses++;
+
+			acctNumbers.add(tranVO.getAccountnum());
+
+			TransactionDetailResponseVO detailRespVO = overviewVO.getTransactions().stream()
+					.filter(t -> t.getLabel().equalsIgnoreCase(tranVO.getDetail().name())).findAny().get();
+
+			detailRespVO.setValue(detailRespVO.getValue() + tranVO.getAmount());
+
+		}
+
+		overviewVO.setTotalNoEarnings(totalEarnings);
+		overviewVO.setTotalNoExpense(totalExpenses);
+		overviewVO.setTotalNoAccounts(acctNumbers.size());
+
+		return new ResponseEntity<TransactionOverviewResponseVO>(overviewVO, HttpStatus.OK);
 	}
 
 	@GetMapping("/year/{year}")
@@ -78,8 +117,8 @@ public class TransactionController
 	}
 
 	@GetMapping("/monthyear/{monthYear}")
-	public ResponseEntity<TransactionDetailByMonthResponseVO> getTransactionsByMonthYear(
-			@PathVariable Integer monthYear) throws Exception
+	public ResponseEntity<List<TransactionDetailResponseVO>> getTransactionsByMonthYear(@PathVariable Integer monthYear)
+			throws Exception
 	{
 
 		Integer month = monthYear / 100;
@@ -90,22 +129,18 @@ public class TransactionController
 		tranList.removeIf(t -> t.getTranDate().getYear() != year);
 		tranList.removeIf(t -> t.getTranDate().getMonthValue() != month);
 
-		TransactionDetailByMonthResponseVO monthResponseVO = new TransactionDetailByMonthResponseVO();
+		List<TransactionDetailResponseVO> monthResponseVOs = new ArrayList<>();
 
 		for(TransactionVO tranVO : tranList)
 		{
-			TransactionBreakupVO breakVO = new TransactionBreakupVO();
-			breakVO.setLabel(tranVO.getDetail().name());
-			breakVO.setValue(Integer.toString(tranVO.getAmount()));
+			TransactionDetailResponseVO detailVO = new TransactionDetailResponseVO();
+			detailVO.setLabel(tranVO.getDetail().name());
+			detailVO.setValue((tranVO.getAmount()));
 
-			if(tranVO.getType() == TranType.Dr)
-				monthResponseVO.getExpenses().add(breakVO);
-
-			else if(tranVO.getType() == TranType.Cr)
-				monthResponseVO.getEarnings().add(breakVO);
+			monthResponseVOs.add(detailVO);
 		}
 
-		return new ResponseEntity<TransactionDetailByMonthResponseVO>(monthResponseVO, HttpStatus.OK);
+		return new ResponseEntity<List<TransactionDetailResponseVO>>(monthResponseVOs, HttpStatus.OK);
 	}
 
 	@SuppressWarnings("unchecked")

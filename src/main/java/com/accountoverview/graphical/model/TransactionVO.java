@@ -17,6 +17,8 @@ public class TransactionVO
 
 	private Integer amount;
 
+	private String accountnum;
+
 	public String getDate()
 	{
 		return date;
@@ -65,6 +67,16 @@ public class TransactionVO
 	public void setTranDate(LocalDate tranDate)
 	{
 		this.tranDate = tranDate;
+	}
+
+	public String getAccountnum()
+	{
+		return accountnum;
+	}
+
+	public void setAccountnum(String accountnum)
+	{
+		this.accountnum = accountnum;
 	}
 
 }

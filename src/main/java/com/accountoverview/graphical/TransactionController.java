@@ -143,18 +143,17 @@ public class TransactionController
 		return new ResponseEntity<List<TransactionDetailResponseVO>>(monthResponseVOs, HttpStatus.OK);
 	}
 
-	@SuppressWarnings("unchecked")
 	private List<TransactionVO> getRecords() throws ParseException
 	{
 		File input = new File("src/main/resources/TransactionData.csv");
-		List<Map<?, ?>> list = null;
+		List<TransactionVO> list = null;
 
 		try
 		{
 			CsvSchema csv = CsvSchema.emptySchema().withHeader();
 			CsvMapper csvMapper = new CsvMapper();
 
-			MappingIterator<Map<?, ?>> mappingIterator = csvMapper.reader().forType(TransactionVO.class).with(csv)
+			MappingIterator<TransactionVO> mappingIterator = csvMapper.reader().forType(TransactionVO.class).with(csv)
 					.readValues(input);
 			list = mappingIterator.readAll();
 
@@ -165,7 +164,7 @@ public class TransactionController
 		}
 
 		List<TransactionVO> tranList = new ArrayList<TransactionVO>();
-		tranList.addAll((List<? extends TransactionVO>)list);
+		tranList.addAll(list);
 
 		DateTimeFormatter dtfInput = DateTimeFormatter.ofPattern(DATE_FORMAT, Locale.ENGLISH);
 

@@ -1,14 +1,21 @@
 package com.accountoverview.graphical.model;
 
+import java.time.LocalDate;
+
+import com.accountoverview.graphical.AppConstants.TranDetail;
+import com.accountoverview.graphical.AppConstants.TranType;
+
 public class TransactionVO
 {
 	private String date;
 
-	private String type;
+	private LocalDate tranDate;
 
-	private String detail;
+	private TranType type;
 
-	private String amount;
+	private TranDetail detail;
+
+	private Integer amount;
 
 	public String getDate()
 	{
@@ -20,34 +27,44 @@ public class TransactionVO
 		this.date = date;
 	}
 
-	public String getType()
+	public TranType getType()
 	{
 		return type;
 	}
 
-	public void setType(String type)
+	public void setType(TranType type)
 	{
 		this.type = type;
 	}
 
-	public String getDetail()
+	public TranDetail getDetail()
 	{
 		return detail;
 	}
 
-	public void setDetail(String detail)
+	public void setDetail(TranDetail detail)
 	{
 		this.detail = detail;
 	}
 
-	public String getAmount()
+	public Integer getAmount()
 	{
 		return amount;
 	}
 
-	public void setAmount(String amount)
+	public void setAmount(Integer amount)
 	{
 		this.amount = amount;
+	}
+
+	public LocalDate getTranDate()
+	{
+		return tranDate;
+	}
+
+	public void setTranDate(LocalDate tranDate)
+	{
+		this.tranDate = tranDate;
 	}
 
 }

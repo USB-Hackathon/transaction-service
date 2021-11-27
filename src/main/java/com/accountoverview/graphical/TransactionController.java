@@ -17,6 +17,7 @@ import java.util.stream.Collectors;
 
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.util.StringUtils;
 import org.springframework.web.bind.annotation.CrossOrigin;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
@@ -36,17 +37,15 @@ import com.fasterxml.jackson.dataformat.csv.CsvSchema;
 @RestController
 @RequestMapping("/transaction")
 @CrossOrigin(origins = "*")
-public class TransactionController
-{
+public class TransactionController {
 	@GetMapping("/ping")
-	public String ping()
-	{
+	public String ping() {
 		return "Hello World: Transaction records!";
 	}
 
 	@GetMapping("/overview")
-	public ResponseEntity<TransactionOverviewResponseVO> getAllTransactionsOverview() throws Exception
-	{
+	public ResponseEntity<TransactionOverviewResponseVO> getAllTransactionsOverview()
+		throws Exception {
 
 		List<TransactionVO> tranList = getRecords();
 
@@ -56,26 +55,27 @@ public class TransactionController
 		Integer totalExpenses = 0;
 		Set<String> acctNumbers = new HashSet<>();
 
-		for(TranDetail aTranDetail : TranDetail.values())
-		{
+		for (TranDetail aTranDetail : TranDetail.values()) {
 			TransactionDetailResponseVO detailResponseVO = new TransactionDetailResponseVO();
 			detailResponseVO.setLabel(aTranDetail.name());
 
 			overviewVO.getTransactions().add(detailResponseVO);
 		}
 
-		for(TransactionVO tranVO : tranList)
-		{
-			if(tranVO.getType() == TranType.Cr)
+		for (TransactionVO tranVO : tranList) {
+			if (tranVO.getType() == TranType.Cr)
 				totalEarnings++;
 
-			else if(tranVO.getType() == TranType.Dr)
+			else if (tranVO.getType() == TranType.Dr)
 				totalExpenses++;
 
 			acctNumbers.add(tranVO.getAccountnum());
 
-			TransactionDetailResponseVO detailRespVO = overviewVO.getTransactions().stream()
-					.filter(t -> t.getLabel().equalsIgnoreCase(tranVO.getDetail().name())).findAny().get();
+			TransactionDetailResponseVO detailRespVO = overviewVO.getTransactions()
+				.stream()
+				.filter(t -> t.getLabel().equalsIgnoreCase(tranVO.getDetail().name()))
+				.findAny()
+				.get();
 
 			detailRespVO.setValue(detailRespVO.getValue() + tranVO.getAmount());
 
@@ -89,9 +89,8 @@ public class TransactionController
 	}
 
 	@GetMapping("/year/{year}")
-	public ResponseEntity<List<TransactionByMonthResponseVO>> getTransactionsByYear(@PathVariable Integer year)
-			throws Exception
-	{
+	public ResponseEntity<List<TransactionByMonthResponseVO>> getTransactionsByYear(
+		@PathVariable Integer year) throws Exception {
 
 		List<TransactionVO> tranList = getRecords();
 
@@ -99,29 +98,35 @@ public class TransactionController
 
 		Map<Integer, TransactionByMonthResponseVO> monthlyTransactionResponseVOs = new HashMap<>();
 
-		for(TransactionVO tranVO : tranList)
-		{
+		for (TransactionVO tranVO : tranList) {
 			int monthKey = tranVO.getTranDate().getMonthValue();
 
 			TransactionByMonthResponseVO mVO = monthlyTransactionResponseVOs.getOrDefault(monthKey,
-					new TransactionByMonthResponseVO());
+				new TransactionByMonthResponseVO());
 
-			mVO.setMonth(tranVO.getTranDate().getMonth().name());
-			mVO.setExpense(mVO.getExpense() + (tranVO.getType() == TranType.Dr ? tranVO.getAmount() : 0));
-			mVO.setEarning(mVO.getEarning() + (tranVO.getType() == TranType.Cr ? tranVO.getAmount() : 0));
+			mVO.setMonth(StringUtils.capitalize(tranVO.getTranDate()
+				.getMonth()
+				.toString()
+				.substring(0, 3)
+				.toLowerCase()));
+			mVO.setExpense(mVO.getExpense() + (tranVO.getType() == TranType.Dr ? tranVO.getAmount()
+				: 0));
+			mVO.setEarning(mVO.getEarning() + (tranVO.getType() == TranType.Cr ? tranVO.getAmount()
+				: 0));
 
 			monthlyTransactionResponseVOs.put(monthKey, mVO);
 		}
 
-		return new ResponseEntity<List<TransactionByMonthResponseVO>>(
-				monthlyTransactionResponseVOs.values().stream().collect(Collectors.toList()), HttpStatus.OK);
+		return new ResponseEntity<List<TransactionByMonthResponseVO>>(monthlyTransactionResponseVOs
+			.values()
+			.stream()
+			.collect(Collectors.toList()), HttpStatus.OK);
 
 	}
 
 	@GetMapping("/monthyear/{monthYear}")
-	public ResponseEntity<List<TransactionDetailResponseVO>> getTransactionsByMonthYear(@PathVariable Integer monthYear)
-			throws Exception
-	{
+	public ResponseEntity<List<TransactionDetailResponseVO>> getTransactionsByMonthYear(
+		@PathVariable Integer monthYear) throws Exception {
 
 		Integer month = monthYear / 100;
 		Integer year = 2000 + (monthYear % 100);
@@ -133,8 +138,7 @@ public class TransactionController
 
 		List<TransactionDetailResponseVO> monthResponseVOs = new ArrayList<>();
 
-		for(TransactionVO tranVO : tranList)
-		{
+		for (TransactionVO tranVO : tranList) {
 			TransactionDetailResponseVO detailVO = new TransactionDetailResponseVO();
 			detailVO.setLabel(tranVO.getDetail().name());
 			detailVO.setValue((tranVO.getAmount()));
@@ -142,26 +146,25 @@ public class TransactionController
 			monthResponseVOs.add(detailVO);
 		}
 
-		return new ResponseEntity<List<TransactionDetailResponseVO>>(monthResponseVOs, HttpStatus.OK);
+		return new ResponseEntity<List<TransactionDetailResponseVO>>(monthResponseVOs,
+			HttpStatus.OK);
 	}
 
-	private List<TransactionVO> getRecords() throws ParseException
-	{
+	private List<TransactionVO> getRecords() throws ParseException {
 		File input = new File("src/main/resources/TransactionData.csv");
 		List<TransactionVO> list = null;
 
-		try
-		{
+		try {
 			CsvSchema csv = CsvSchema.emptySchema().withHeader();
 			CsvMapper csvMapper = new CsvMapper();
 
-			MappingIterator<TransactionVO> mappingIterator = csvMapper.reader().forType(TransactionVO.class).with(csv)
-					.readValues(input);
+			MappingIterator<TransactionVO> mappingIterator = csvMapper.reader()
+				.forType(TransactionVO.class)
+				.with(csv)
+				.readValues(input);
 			list = mappingIterator.readAll();
 
-		}
-		catch(Exception e)
-		{
+		} catch (Exception e) {
 			e.printStackTrace();
 		}
 
@@ -170,7 +173,7 @@ public class TransactionController
 
 		DateTimeFormatter dtfInput = DateTimeFormatter.ofPattern(DATE_FORMAT, Locale.ENGLISH);
 
-		for(TransactionVO tranVO : tranList)
+		for (TransactionVO tranVO : tranList)
 			tranVO.setTranDate(LocalDate.parse(tranVO.getDate(), dtfInput));
 
 		return tranList;

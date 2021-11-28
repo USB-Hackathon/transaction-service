@@ -51,8 +51,8 @@ public class TransactionController {
 
 		TransactionOverviewResponseVO overviewVO = new TransactionOverviewResponseVO();
 
-		Integer totalEarnings = 0;
-		Integer totalExpenses = 0;
+		Float totalEarnings = 0.0f;
+		Float totalExpenses = 0.0f;
 		Set<String> acctNumbers = new HashSet<>();
 
 		for (TranDetail aTranDetail : TranDetail.values()) {
@@ -64,10 +64,10 @@ public class TransactionController {
 
 		for (TransactionVO tranVO : tranList) {
 			if (tranVO.getType() == TranType.Cr)
-				totalEarnings++;
+				totalEarnings += tranVO.getAmount();
 
 			else if (tranVO.getType() == TranType.Dr)
-				totalExpenses++;
+				totalExpenses += tranVO.getAmount();
 
 			acctNumbers.add(tranVO.getAccountnum());
 
@@ -81,8 +81,8 @@ public class TransactionController {
 
 		}
 
-		overviewVO.setTotalNoEarnings(totalEarnings);
-		overviewVO.setTotalNoExpense(totalExpenses);
+		overviewVO.setTotalEarnings(totalEarnings);
+		overviewVO.setTotalExpenses(totalExpenses);
 		overviewVO.setTotalNoAccounts(acctNumbers.size());
 
 		return new ResponseEntity<TransactionOverviewResponseVO>(overviewVO, HttpStatus.OK);

@@ -11,7 +11,7 @@ public interface AppConstants
 
 	enum TranDetail
 	{
-		Salary, Entertainment, Transfers, Bills, Groceries, Miscellaneous, Shopping
+		Income, Entertainment, Transfers, Bills, Groceries, Miscellaneous, Shopping
 
 	}
 }
